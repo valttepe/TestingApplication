@@ -7,9 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.mbientlab.metawear.Data;
 import com.mbientlab.metawear.MetaWearBoard;
@@ -21,6 +24,9 @@ import com.mbientlab.metawear.builder.RouteComponent;
 import com.mbientlab.metawear.data.MagneticField;
 import com.mbientlab.metawear.module.MagnetometerBmm150;
 
+import com.mbientlab.metawear.module.SensorFusionBosch;
+import com.mbientlab.metawear.module.SensorFusionBosch.*;
+
 import bolts.Continuation;
 import bolts.Task;
 
@@ -28,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private final String MW_MAC_ADDRESS = "CB:AA:89:01:48:20";
     private BtleService.LocalBinder serviceBinder;
     private MetaWearBoard board;
+
 
 
     @Override
@@ -40,6 +47,11 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 this, Context.BIND_AUTO_CREATE);
 
 
+    }
+
+    public void changetoInternal(View view){
+        InternalFragment internalFragment = new InternalFragment();
+        getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, internalFragment).addToBackStack(null).commit();
     }
 
 
@@ -58,6 +70,20 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         serviceBinder = (BtleService.LocalBinder) iBinder;
         retrieveBoard();
 
+        board.connectAsync().onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                SensorFusionBosch sensorFusion = board.getModule(SensorFusionBosch.class);
+                sensorFusion.configure()
+                        .mode(Mode.COMPASS)
+                        .commit();
+
+                return null;
+            }
+        });
+
+
+        /*
         board.connectAsync().onSuccessTask(new Continuation<Void, Task<Void>>() {
             @Override
             public Task<Void> then(Task<Void> task) throws Exception {
@@ -83,7 +109,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     }
                 });
             }
-        });
+        });*/
+
+
 
 
 
